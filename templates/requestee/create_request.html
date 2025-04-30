@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+
+{% block title %}Create New Request - Cleanify V2{% endblock %}
+
+{% block content %}
+<div class="max-w-lg mx-auto bg-white p-8 rounded-lg shadow-xl mt-8 border border-gray-200">
+    <h1 class="text-2xl font-bold text-center text-gray-800 mb-6">Submit a Service Request</h1>
+
+    <form method="post" enctype="multipart/form-data" action="{% url 'create_request' %}">
+        {% csrf_token %}
+
+        {# Display non-field errors #}
+        {% if form.non_field_errors %}
+            <div class="mb-4 p-3 bg-red-100 border border-red-300 text-red-800 rounded-md text-sm">
+                {% for error in form.non_field_errors %} {{ error }} {% endfor %}
+            </div>
+        {% endif %}
+
+        {# Category Field #}
+        <div class="mb-4">
+            <label for="{{ form.category.id_for_label }}">{{ form.category.label }} *</label>
+            {{ form.category }}
+            {% if form.category.errors %} <p class="text-red-500 text-xs mt-1">{{ form.category.errors|first }}</p> {% endif %}
+        </div>
+
+        {# Location Field #}
+        <div class="mb-4">
+            <label for="{{ form.location.id_for_label }}">{{ form.location.label }} *</label>
+            {{ form.location }}
+            {% if form.location.errors %} <p class="text-red-500 text-xs mt-1">{{ form.location.errors|first }}</p> {% endif %}
+        </div>
+
+        {# Description Field #}
+         <div class="mb-4">
+            <label for="{{ form.description.id_for_label }}">{{ form.description.label }}</label>
+            {{ form.description }}
+            {% if form.description.errors %} <p class="text-red-500 text-xs mt-1">{{ form.description.errors|first }}</p> {% endif %}
+        </div>
+
+        {# Image Upload Field #}
+        {# Note: Camera vs Storage option needs JS implementation beyond simple Django forms #}
+        <div class="mb-6">
+            <label for="{{ form.request_image.id_for_label }}">{{ form.request_image.label }}</label>
+            {{ form.request_image }}
+            <p class="text-xs text-gray-500 mt-1">Please upload a clear image of the issue.</p>
+            {% if form.request_image.errors %} <p class="text-red-500 text-xs mt-1">{{ form.request_image.errors|first }}</p> {% endif %}
+            {# TODO: Add JS here if implementing camera access or image preview/change #}
+        </div>
+
+
+        {# Submit Button #}
+        <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition duration-300">
+            Submit Request
+        </button>
+         <a href="{% url 'requestee_dashboard' %}" class="block text-center mt-4 text-sm text-gray-600 hover:underline">Cancel</a>
+    </form>
+</div>
+{% endblock %}

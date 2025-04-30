@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block title %}Login - Cleanify V2{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto bg-white p-8 rounded-lg shadow-xl mt-10 border border-gray-200">
+    <h2 class="text-2xl font-bold text-center text-gray-800 mb-6">Login to Cleanify</h2>
+    <form method="post" action="{% url 'login' %}">
+        {% csrf_token %}
+
+        {# Display non-field errors (e.g., invalid login) #}
+        {% if form.non_field_errors %}
+            <div class="mb-4 p-3 bg-red-100 border border-red-300 text-red-800 rounded-md text-sm">
+                {% for error in form.non_field_errors %}
+                    {{ error }}
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {# Username Field #}
+        <div class="mb-4">
+            <label for="{{ form.username.id_for_label }}">Username</label>
+            {{ form.username }} {# Uses styles from base.html #}
+            {% if form.username.errors %}
+                <p class="text-red-500 text-xs mt-1">{{ form.username.errors|first }}</p>
+            {% endif %}
+        </div>
+
+        {# Password Field #}
+        <div class="mb-6">
+            <label for="{{ form.password.id_for_label }}">Password</label>
+            {{ form.password }} {# Uses styles from base.html #}
+            {% if form.password.errors %}
+                <p class="text-red-500 text-xs mt-1">{{ form.password.errors|first }}</p>
+            {% endif %}
+        </div>
+
+        {# Submit Button #}
+        <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition duration-300">
+            Login
+        </button>
+    </form>
+
+    {# Link to Signup #}
+    <p class="text-center text-gray-600 text-sm mt-6">
+        Don't have an account?
+        <a href="{% url 'signup' %}" class="font-medium text-green-600 hover:text-green-800 hover:underline">
+            Sign Up
+        </a>
+    </p>
+</div>
+{% endblock %}

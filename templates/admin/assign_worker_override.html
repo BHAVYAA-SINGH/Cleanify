@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+
+{% block title %}Manually Assign Worker - Cleanify V2{% endblock %}
+
+{% block content %}
+<div class="max-w-lg mx-auto bg-white p-8 rounded-lg shadow-xl mt-8 border border-gray-200">
+    <h1 class="text-2xl font-bold text-center text-gray-800 mb-6">Manually Assign Worker</h1>
+
+    <!-- Request Details Section -->
+    <div class="mb-6 p-4 border border-yellow-300 rounded bg-yellow-50 text-sm">
+        <h3 class="text-lg font-semibold text-yellow-800 mb-2">Request Details (Pending)</h3>
+        <p><strong>Request ID:</strong> {{ waste_request.id }}</p>
+        <p><strong>Requestee:</strong> {{ waste_request.requestee.username }}</p>
+        <p><strong>Location:</strong> {{ waste_request.location }}</p>
+        <p><strong>Category:</strong> {{ waste_request.category }}</p>
+        <p><strong>Description:</strong> {{ waste_request.description|default:"N/A" }}</p>
+         {% if waste_request.request_image %}
+         <p class="mt-1"><strong>Request Image:</strong> <a href="{{ waste_request.request_image.url }}" target="_blank" class="text-blue-600 hover:underline">View</a></p>
+         {% endif %}
+        <p><strong>Created At:</strong> {{ waste_request.created_at|date:"d M Y, P" }}</p>
+         <p><strong>Current Status:</strong> <span class="font-semibold text-yellow-900">{{ waste_request.status }}</span></p>
+    </div>
+
+     <p class="text-sm text-red-600 bg-red-50 p-3 rounded border border-red-200 mb-4">
+         <strong >Warning:</strong> Manual assignment overrides the automatic system. Please ensure the selected worker is suitable and preferably free. Assigning a busy worker may cause delays.
+     </p>
+
+    <!-- Manual Assignment Form -->
+    <form method="post" action="{% url 'admin_manual_assign' waste_request.id %}">
+         {% csrf_token %}
+
+          {% if form.non_field_errors %}
+            <div class="mb-4 p-3 bg-red-100 border border-red-300 text-red-800 rounded-md text-sm">
+                {% for error in form.non_field_errors %} {{ error }} {% endfor %}
+            </div>
+          {% endif %}
+
+         {# Assigned Worker Field #}
+         <div class="mb-6">
+             <label for="{{ form.assigned_worker.id_for_label }}">{{ form.assigned_worker.label }} *</label>
+             {% if workers_available %}
+                {{ form.assigned_worker }} {# Dropdown defined in forms.py #}
+             {% else %}
+                 <p class="text-gray-500 italic mt-2">No workers available in the system.</p>
+             {% endif %}
+             {% if form.assigned_worker.errors %}
+                 <p class="text-red-500 text-xs mt-1">{{ form.assigned_worker.errors|first }}</p>
+             {% endif %}
+         </div>
+
+         {# Submit Button #}
+         <button type="submit"
+                 class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-300 {% if not workers_available %}opacity-50 cursor-not-allowed{% endif %}"
+                 {% if not workers_available %}disabled title="No workers available"{% endif %}>
+            Assign Worker Manually
+        </button>
+        <a href="{% url 'admin_dashboard' %}" class="block text-center mt-4 text-sm text-gray-600 hover:underline">Cancel</a>
+    </form>
+</div>
+{% endblock %}

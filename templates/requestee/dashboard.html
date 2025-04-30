@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+
+{% block title %}Requestee Dashboard - Cleanify V2{% endblock %}
+
+{% block content %}
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+    <h1 class="text-2xl sm:text-3xl font-bold text-gray-800">Your Service Requests</h1>
+    <a href="{% url 'create_request' %}" class="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md text-center transition duration-300 shadow">
+        + Create New Request
+    </a>
+</div>
+
+<!-- Section for Pending Approval -->
+{% if pending_approval_requests %}
+<div class="mb-8">
+    <h2 class="text-xl font-semibold text-orange-700 mb-3 border-b pb-2 border-orange-200">
+        Action Required: Review Completed Tasks
+    </h2>
+    <div class="bg-white shadow rounded-lg overflow-x-auto">
+        <table class="min-w-full leading-normal">
+            <thead>
+                <tr class="bg-orange-100 text-orange-800 uppercase text-xs sm:text-sm leading-normal">
+                    <th class="py-3 px-4 text-left">Location</th>
+                    <th class="py-3 px-4 text-left hidden sm:table-cell">Category</th>
+                    <th class="py-3 px-4 text-left">Worker</th>
+                    <th class="py-3 px-4 text-center">Completion Proof</th>
+                    <th class="py-3 px-4 text-center">Status</th>
+                    <th class="py-3 px-4 text-center">Action</th>
+                </tr>
+            </thead>
+            <tbody class="text-gray-700 text-sm">
+                {% for req in pending_approval_requests %}
+                <tr class="border-b border-gray-200 hover:bg-gray-50">
+                    <td class="py-3 px-4 text-left whitespace-nowrap">{{ req.location }}</td>
+                    <td class="py-3 px-4 text-left hidden sm:table-cell">{{ req.category }}</td>
+                    <td class="py-3 px-4 text-left">{{ req.assigned_worker.username|default:"N/A" }}</td>
+                    <td class="py-3 px-4 text-center">
+                        {% if req.completion_image %}
+                            <a href="{{ req.completion_image.url }}" target="_blank" class="text-blue-600 hover:underline text-xs font-medium">View Image</a>
+                        {% else %} <span class="text-red-600 text-xs">Missing!</span> {% endif %}
+                    </td>
+                    <td class="py-3 px-4 text-center">
+                         <span class="px-2 py-1 font-semibold leading-tight rounded-full bg-orange-200 text-orange-900 text-xs">
+                            Pending Your Approval
+                        </span>
+                    </td>
+                     <td class="py-3 px-4 text-center">
+                         <a href="{% url 'approve_request' req.id %}" class="bg-indigo-500 hover:bg-indigo-600 text-white text-xs py-1 px-3 rounded-md transition duration-300">
+                             Review & Rate
+                         </a>
+                     </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+<!-- Section for Other Requests -->
+<h2 class="text-xl font-semibold text-gray-700 mb-3 mt-6 border-b pb-2 border-gray-200">Request History</h2>
+{% if other_requests or not pending_approval_requests %} {# Show table if other requests exist OR if no requests exist at all #}
+    <div class="bg-white shadow rounded-lg overflow-x-auto">
+        <table class="min-w-full leading-normal">
+            <thead>
+                <tr class="bg-gray-200 text-gray-600 uppercase text-xs sm:text-sm leading-normal">
+                    <th class="py-3 px-4 text-left">Location</th>
+                    <th class="py-3 px-4 text-left hidden sm:table-cell">Category</th>
+                    <th class="py-3 px-4 text-center">Initial Image</th>
+                    <th class="py-3 px-4 text-center">Status</th>
+                    <th class="py-3 px-4 text-left">Assigned Worker</th>
+                    <th class="py-3 px-4 text-center hidden md:table-cell">Created</th>
+                    <th class="py-3 px-4 text-center">Your Rating</th>
+                </tr>
+            </thead>
+            <tbody class="text-gray-700 text-sm">
+                {% for req in other_requests %}
+                <tr class="border-b border-gray-200 hover:bg-gray-50">
+                    <td class="py-3 px-4 text-left whitespace-nowrap">{{ req.location }}</td>
+                    <td class="py-3 px-4 text-left hidden sm:table-cell">{{ req.category }}</td>
+                    <td class="py-3 px-4 text-center">
+                        {% if req.request_image %}
+                            <a href="{{ req.request_image.url }}" target="_blank" class="text-blue-600 hover:underline text-xs font-medium">View Image</a>
+                        {% else %} - {% endif %}
+                    </td>
+                    <td class="py-3 px-4 text-center">
+                         <span class="px-2 py-1 font-semibold leading-tight rounded-full text-xs
+                            {% if req.status == 'Pending' %} bg-yellow-200 text-yellow-900
+                            {% elif req.status == 'Assigned' %} bg-blue-200 text-blue-900
+                            {% elif req.status == 'Completed' %} bg-green-200 text-green-900
+                            {% else %} bg-gray-200 text-gray-900 {% endif %}">
+                            {{ req.status }}
+                        </span>
+                    </td>
+                     <td class="py-3 px-4 text-left">{{ req.assigned_worker.username|default:"-" }}</td>
+                     <td class="py-3 px-4 text-center hidden md:table-cell">{{ req.created_at|date:"d M Y, P" }}</td>
+                     <td class="py-3 px-4 text-center">
+                        {% if req.status == 'Completed' and req.worker_rating %}
+                            <span class="font-medium">{{ req.get_worker_rating_display }}</span>
+                        {% else %}
+                            -
+                        {% endif %}
+                     </td>
+                </tr>
+                {% empty %}
+                 {% if not pending_approval_requests %} {# Only show if no pending approval either #}
+                    <tr>
+                        <td colspan="7" class="text-center py-6 text-gray-500">
+                            You haven't submitted any requests yet. <a href="{% url 'create_request' %}" class="text-green-600 hover:underline font-medium">Create one now!</a>
+                        </td>
+                    </tr>
+                 {% endif %}
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endif %} {# End check for other_requests #}
+{% endblock %}

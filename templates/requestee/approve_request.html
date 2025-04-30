@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+
+{% block title %}Review & Rate Task - Cleanify V2{% endblock %}
+
+{% block content %}
+<div class="max-w-lg mx-auto bg-white p-8 rounded-lg shadow-xl mt-8 border border-gray-200">
+    <h1 class="text-2xl font-bold text-center text-gray-800 mb-6">Review Completed Task</h1>
+
+    <!-- Request Details Section -->
+    <div class="mb-6 p-4 border border-gray-200 rounded bg-gray-50 text-sm">
+        <h3 class="text-lg font-semibold text-gray-700 mb-2">Request Details</h3>
+        <p><strong>Location:</strong> {{ waste_request.location }}</p>
+        <p><strong>Category:</strong> {{ waste_request.category }}</p>
+        <p><strong>Description:</strong> {{ waste_request.description|default:"N/A" }}</p>
+        <p><strong>Worker:</strong> {{ waste_request.assigned_worker.username|default:"N/A" }}</p>
+        <p><strong>Marked Complete At:</strong> {{ waste_request.updated_at|date:"d M Y, P" }}</p>
+         <p><strong>Current Status:</strong> <span class="font-semibold text-orange-700">{{ waste_request.status }}</span></p>
+         {% if waste_request.request_image %}
+         <p class="mt-1"><strong>Your Initial Image:</strong> <a href="{{ waste_request.request_image.url }}" target="_blank" class="text-blue-600 hover:underline">View</a></p>
+         {% endif %}
+    </div>
+
+    <!-- Display Completed Image -->
+    <div class="mb-6">
+         <h3 class="text-lg font-semibold text-gray-700 mb-2">Worker's Completion Proof:</h3>
+         {% if waste_request.completion_image %}
+            <a href="{{ waste_request.completion_image.url }}" target="_blank">
+                <img src="{{ waste_request.completion_image.url }}" alt="Completion proof for {{ waste_request.location }}" class="rounded-lg shadow-md w-full h-auto max-h-96 object-contain border border-gray-300 cursor-pointer">
+            </a>
+         {% else %}
+             <p class="text-center text-red-600 bg-red-100 p-4 rounded border border-red-300 text-sm">Completion image is missing!</p>
+         {% endif %}
+    </div>
+
+    <hr class="my-6 border-t border-gray-300">
+
+    <!-- Approval and Rating Form -->
+     <h3 class="text-lg font-semibold text-gray-700 mb-4">Provide Your Feedback:</h3>
+    <form method="post" action="{% url 'approve_request' waste_request.id %}">
+         {% csrf_token %}
+
+          {% if form.non_field_errors %}
+            <div class="mb-4 p-3 bg-red-100 border border-red-300 text-red-800 rounded-md text-sm">
+                {% for error in form.non_field_errors %} {{ error }} {% endfor %}
+            </div>
+          {% endif %}
+
+         {# Rating Field #}
+         <div class="mb-4">
+             <label class="block text-sm font-medium text-gray-700 mb-2">{{ form.worker_rating.label }}</label>
+             <div class="mt-1 space-x-4 flex flex-wrap items-center justify-center sm:justify-start">
+                 {% for radio in form.worker_rating %}
+                     <div class="flex items-center mr-3 mb-2">
+                         {{ radio.tag }} {# Renders the radio input #}
+                         <label for="{{ radio.id_for_label }}" class="ml-2 block text-sm text-gray-900">{{ radio.choice_label }}</label>
+                     </div>
+                 {% endfor %}
+             </div>
+             {% if form.worker_rating.errors %}
+                 <p class="text-red-500 text-xs mt-1">{{ form.worker_rating.errors|first }}</p>
+             {% endif %}
+         </div>
+
+         {# Approval Checkbox #}
+          <div class="mb-6 flex items-center">
+            {{ form.approve }}
+            <label for="{{ form.approve.id_for_label }}" class="ml-2 block text-sm text-gray-900">{{ form.approve.label }}</label>
+             {% if form.approve.errors %}
+                 <p class="text-red-500 text-xs mt-1">{{ form.approve.errors|first }}</p>
+             {% endif %}
+         </div>
+         <p class="text-xs text-gray-500 mb-4 -mt-3">
+             If you are satisfied, check the box above. If not, leave it unchecked and the request will be re-opened. Your rating will be submitted in either case.
+         </p>
+
+         {# Submit Button #}
+         <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-300">
+            Submit Feedback
+        </button>
+        <a href="{% url 'requestee_dashboard' %}" class="block text-center mt-4 text-sm text-gray-600 hover:underline">Cancel</a>
+    </form>
+
+</div>
+{% endblock %}
