@@ -36,7 +36,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'cleanify_v2.urls'
+ROOT_URLCONF = 'cleanify.urls'
 
 TEMPLATES = [
     {
@@ -55,7 +55,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'cleanify_v2.wsgi.application'
+WSGI_APPLICATION = 'cleanify.wsgi.application'
 
 # Database (Using simple SQLite for now)
 DATABASES = {

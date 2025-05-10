@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Cleanify V2{% endblock %}</title>
+    <title>{% block title %}Cleanify{% endblock %}</title>
     <!-- Tailwind Play CDN Script -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Optional: Include custom configuration for CDN -->
@@ -72,7 +72,7 @@
         <nav class="container mx-auto px-4 sm:px-6 lg:px-8 py-3 flex justify-between items-center">
             <!-- Logo -->
             <a href="{% url 'landing_page' %}" class="text-2xl font-bold text-green-600 hover:text-green-800 transition duration-300">
-                Cleanify V2
+                Cleanify
             </a>
 
             <!-- Navigation Links -->
@@ -118,7 +118,7 @@
     <!-- Footer -->
     <footer class="bg-gray-800 text-gray-300 text-center py-4 mt-8">
         <div class="container mx-auto px-4 text-sm">
-            <p>© {% now "Y" %} Cleanify V2 Project. All rights reserved.</p>
+            <p>© {% now "Y" %} Cleanify Project. All rights reserved.</p>
             {# Add other footer links if needed #}
         </div>
     </footer>
