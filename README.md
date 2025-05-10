@@ -144,10 +144,13 @@ These instructions will get you a copy of the project up and running on your loc
 
 ## 🖼️ Screenshots 
 
+**Main Dashboard**
 ![Screenshot 2025-05-10 125608](https://github.com/user-attachments/assets/1c1fce0d-1234-4cdc-8fb3-45314cf47ab0)
-![Screenshot 2025-05-10 125713](https://github.com/user-attachments/assets/049b6dab-9ca2-4021-8a13-8fa11990433a)
+**Requestee Dashboard**
 ![Screenshot 2025-05-10 125742](https://github.com/user-attachments/assets/8636707e-d6ed-4ee9-8143-c060ce81aa3e)
+**Create Request Form**
 ![Screenshot 2025-05-10 125800](https://github.com/user-attachments/assets/a09fc3a9-d4a1-4597-81e4-4bc5e7508b52)
+**Worker Dashboard**
 ![Screenshot 2025-05-10 125843](https://github.com/user-attachments/assets/cfc89ac6-92ca-42b8-b8f8-6033e0ed74f2)
 
 ## 🐛 Future Scope 
