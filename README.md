@@ -143,6 +143,7 @@ These instructions will get you a copy of the project up and running on your loc
 ---
 
 ## 🖼️ Screenshots 
+![Screenshot 2025-05-10 125608](https://github.com/user-attachments/assets/1c1fce0d-1234-4cdc-8fb3-45314cf47ab0)
 
 ## 🐛 Future Scope 
 
