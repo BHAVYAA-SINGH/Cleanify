@@ -1,7 +1,8 @@
-# waste_management/forms.py
+
 from django import forms
 from django.contrib.auth.forms import UserCreationForm as BaseUserCreationForm
 from django.contrib.auth.models import User, Group
+from django.db import transaction 
 from django.db import transaction 
 
 from .models import UserProfile, WasteRequest, ROLE_CHOICES, CATEGORY_CHOICES, RATING_CHOICES
@@ -31,7 +32,6 @@ class CustomUserCreationForm(BaseUserCreationForm):
         fields = BaseUserCreationForm.Meta.fields + ('role', 'category', 'first_name', 'last_name', 'email')
 
     def clean_email(self):
-        # Make email required
         email = self.cleaned_data.get('email')
         if not email:
             raise forms.ValidationError("Email address is required.")
@@ -123,6 +123,7 @@ class WorkerCompletionForm(forms.ModelForm):
     """ Form for Workers to upload completion proof. """
     completion_image = forms.ImageField(
         required=True, 
+        required=True, 
         label="Upload Photo of Completed Work *",
         widget=forms.ClearableFileInput(attrs={'class': 'mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-violet-50 file:text-violet-700 hover:file:bg-violet-100'})
     )
@@ -141,12 +142,14 @@ class ApprovalRatingForm(forms.ModelForm):
     )
     approve = forms.BooleanField(
         required=False,
+        required=False,
         label="Approve the completed work (Tick if satisfied)",
         widget=forms.CheckboxInput(attrs={'class':'h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded'})
     )
 
     class Meta:
         model = WasteRequest
+        fields = ['worker_rating'] 
         fields = ['worker_rating'] 
 
 

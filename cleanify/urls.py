@@ -1,10 +1,8 @@
-# cleanify_v2/urls.py
 
 from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-# Import views from app for static pages and auth
 from waste_management import views as waste_views
 
 urlpatterns = [

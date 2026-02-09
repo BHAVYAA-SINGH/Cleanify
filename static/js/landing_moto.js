@@ -1,4 +1,4 @@
-// Simple Javascript typewriter effect for the landing page moto
+
 document.addEventListener('DOMContentLoaded', function() {
     const motoElement = document.getElementById('dynamic-moto');
     if (!motoElement) return; 
@@ -13,6 +13,9 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentMotoIndex = 0;
     let currentCharIndex = 0;
     let isDeleting = false;
+    const typingSpeed = 100; 
+    const deletingSpeed = 50; 
+    const delayBetweenMotos = 1500; 
     const typingSpeed = 100; 
     const deletingSpeed = 50; 
     const delayBetweenMotos = 1500; 
@@ -36,6 +39,7 @@ document.addEventListener('DOMContentLoaded', function() {
         let currentSpeed = isDeleting ? deletingSpeed : typingSpeed;
 
         
+        
         if (!isDeleting && currentCharIndex === currentMoto.length) {
            
             currentSpeed = delayBetweenMotos;
@@ -43,6 +47,8 @@ document.addEventListener('DOMContentLoaded', function() {
         } else if (isDeleting && currentCharIndex === 0) {
           
             isDeleting = false;
+            currentMotoIndex = (currentMotoIndex + 1) % motos.length; 
+            currentSpeed = typingSpeed; 
             currentMotoIndex = (currentMotoIndex + 1) % motos.length; 
             currentSpeed = typingSpeed; 
         }

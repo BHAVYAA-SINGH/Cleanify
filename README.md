@@ -2,6 +2,7 @@
 # ✨ Cleanify✨ - Smart Campus Maintenance System
 
 Cleanify is a web application designed to streamline the reporting and resolution of maintenance issues (like sanitation, garbage collection, water leakage, and electricity problems) within a campus environment. It connects requestees (students/faculty) with available workers automatically, facilitating efficient task management and feedback.
+Cleanify is a web application designed to streamline the reporting and resolution of maintenance issues (like sanitation, garbage collection, water leakage, and electricity problems) within a campus environment. It connects requestees (students/faculty) with available workers automatically, facilitating efficient task management and feedback.
 
 ---
 

@@ -1,4 +1,4 @@
-# waste_management/models.py
+
 from django.db import models
 from django.contrib.auth.models import User
 from django.db.models import Avg
@@ -61,6 +61,7 @@ class UserProfile(models.Model):
         if self.role != 'Worker':
             logger.warning(f"Attempted to update rating for non-worker: {self.user.username}")
             return 
+            return 
 
         try:
             
@@ -73,7 +74,7 @@ class UserProfile(models.Model):
 
             if count > 0:
                 aggregation_result = requests_rated.aggregate(Avg('worker_rating'))
-                avg_rating_value = aggregation_result.get('worker_rating__avg') # Use .get for safety
+                avg_rating_value = aggregation_result.get('worker_rating__avg')
                 logger.debug(f"Calculated avg rating value for {self.user.username}: {avg_rating_value}")
 
                 if avg_rating_value is not None:
@@ -95,6 +96,7 @@ class UserProfile(models.Model):
     def update_busy_status(self):
         """ Checks if the worker has any 'Assigned' tasks and updates is_busy flag. """
         if self.role != 'Worker':
+            if self.is_busy: 
             if self.is_busy: 
                  self.is_busy = False
                  self.save(update_fields=['is_busy'])

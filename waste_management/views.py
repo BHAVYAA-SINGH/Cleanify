@@ -4,6 +4,7 @@ from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.models import User, Group
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm 
+from django.contrib.auth.forms import AuthenticationForm, UserCreationForm 
 from django.contrib import messages
 from django.utils import timezone
 from django.db.models import Q
@@ -256,12 +257,14 @@ def approve_request_view(request, request_id):
         status='Pending Approval'
     )
 
+
     original_worker = waste_request.assigned_worker
 
     if request.method == 'POST':
         form = ApprovalRatingForm(request.POST, instance=waste_request)
         if form.is_valid():
             logger.info(f"Processing approval/rating for Request ID: {request_id} by Requestee: {request.user.username}")
+            approval_instance = form.save(commit=False) 
             approval_instance = form.save(commit=False) 
             is_approved = form.cleaned_data.get('approve', False)
 
@@ -284,6 +287,7 @@ def approve_request_view(request, request_id):
                         logger.info(f"Deleted completion image for rejected Request ID: {request_id}")
                     except Exception as img_del_err:
                         logger.error(f"Error deleting completion_image for Request ID: {request_id}: {img_del_err}")
+                approval_instance.completion_image = None 
                 approval_instance.completion_image = None 
                 messages.warning(request, "Work not approved. Returned to Pending queue. Your rating has been recorded.")
 
@@ -325,6 +329,7 @@ def worker_dashboard(request):
             worker.profile.update_busy_status()
         else:
              logger.error(f"UserProfile missing for worker {worker.username} on dashboard!")
+             UserProfile.objects.get_or_create(user=worker, defaults={'role': 'Worker'}) 
              UserProfile.objects.get_or_create(user=worker, defaults={'role': 'Worker'}) 
     except Exception as e:
          logger.error(f"Error updating busy status for worker {worker.username} on dashboard: {e}")
