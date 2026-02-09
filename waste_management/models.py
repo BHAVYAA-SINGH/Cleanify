@@ -96,7 +96,7 @@ class UserProfile(models.Model):
     def update_busy_status(self):
         """ Checks if the worker has any 'Assigned' tasks and updates is_busy flag. """
         if self.role != 'Worker':
-            if self.is_busy: 
+            # if self.is_busy: 
             if self.is_busy: 
                  self.is_busy = False
                  self.save(update_fields=['is_busy'])
