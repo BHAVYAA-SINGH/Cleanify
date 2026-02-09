@@ -6,7 +6,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-# --- Choices ---
+
 
 ROLE_CHOICES = (
     ('Requestee', 'Requestee'),
@@ -35,7 +35,6 @@ RATING_CHOICES = (
     (5, '5 - Excellent'),
 )
 
-# --- Models ---
 
 class UserProfile(models.Model):
     """ Extends User: Role, Worker Category, Avg Rating, Busy Status """
@@ -61,18 +60,17 @@ class UserProfile(models.Model):
         """ Calculates and updates the worker's average rating based on ALL submitted ratings. """
         if self.role != 'Worker':
             logger.warning(f"Attempted to update rating for non-worker: {self.user.username}")
-            return # Should not happen if called correctly
+            return 
 
         try:
-            # Filter ALL requests ever assigned to this worker that have received a rating
+            
             requests_rated = WasteRequest.objects.filter(
                 assigned_worker=self.user,
-                worker_rating__isnull=False # Ensure rating exists
+                worker_rating__isnull=False
             )
             count = requests_rated.count()
             logger.debug(f"Found {count} rated requests for worker {self.user.username}")
 
-            # Calculate average ONLY if there are rated requests
             if count > 0:
                 aggregation_result = requests_rated.aggregate(Avg('worker_rating'))
                 avg_rating_value = aggregation_result.get('worker_rating__avg') # Use .get for safety
@@ -81,15 +79,12 @@ class UserProfile(models.Model):
                 if avg_rating_value is not None:
                     self.average_rating = round(avg_rating_value, 2)
                 else:
-                    # This case should ideally not happen if count > 0 and ratings are integers
                     logger.warning(f"Avg calculation returned None despite {count} rated requests for {self.user.username}.")
                     self.average_rating = None
             else:
-                # No rated requests found, set average rating to None
                 self.average_rating = None
                 logger.debug(f"No rated requests found for {self.user.username}, setting average rating to None.")
 
-            # Save the updated rating (or None)
             self.save(update_fields=['average_rating'])
             logger.info(f"Successfully updated average rating for worker {self.user.username} to {self.average_rating}")
 
@@ -100,7 +95,7 @@ class UserProfile(models.Model):
     def update_busy_status(self):
         """ Checks if the worker has any 'Assigned' tasks and updates is_busy flag. """
         if self.role != 'Worker':
-            if self.is_busy: # If somehow a non-worker was marked busy, correct it
+            if self.is_busy: 
                  self.is_busy = False
                  self.save(update_fields=['is_busy'])
             return
@@ -111,7 +106,6 @@ class UserProfile(models.Model):
                 status='Assigned'
             ).exists()
 
-            # Update only if the status changed
             if self.is_busy != is_currently_assigned:
                 self.is_busy = is_currently_assigned
                 self.save(update_fields=['is_busy'])
@@ -135,7 +129,7 @@ class WasteRequest(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     assigned_worker = models.ForeignKey(User, on_delete=models.SET_NULL, related_name='assigned_tasks', null=True, blank=True)
     assigned_at = models.DateTimeField(null=True, blank=True)
-    is_approved_by_student = models.BooleanField(default=False) # Renamed to is_approved_by_requestee if needed? Stick to student for now
+    is_approved_by_student = models.BooleanField(default=False) 
     worker_rating = models.IntegerField(choices=RATING_CHOICES, null=True, blank=True)
     approved_at = models.DateTimeField(null=True, blank=True)
 

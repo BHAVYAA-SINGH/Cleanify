@@ -1,7 +1,7 @@
 
-# ✨ Cleanify V2 ✨ - Smart Campus Maintenance System
+# ✨ Cleanify✨ - Smart Campus Maintenance System
 
-Cleanify V2 is a web application designed to streamline the reporting and resolution of maintenance issues (like sanitation, garbage collection, water leakage, and electricity problems) within a campus environment. It connects requestees (students/faculty) with available workers automatically, facilitating efficient task management and feedback.
+Cleanify is a web application designed to streamline the reporting and resolution of maintenance issues (like sanitation, garbage collection, water leakage, and electricity problems) within a campus environment. It connects requestees (students/faculty) with available workers automatically, facilitating efficient task management and feedback.
 
 ---
 
@@ -67,7 +67,7 @@ These instructions will get you a copy of the project up and running on your loc
     ```bash
     # If using Git:
     # git clone [URL_OF_REPOSITORY]
-    # cd cleanify_v2_project
+    # cd cleanify
     ```
 
 2.  **Create and activate a virtual environment:**
@@ -99,7 +99,7 @@ These instructions will get you a copy of the project up and running on your loc
 
 6.  **Create Necessary Groups:**
     *   Run the development server: `python manage.py runserver`
-    *   Go to the admin panel in your browser (e.g., `http://127.0.0.1:8000/secure-admin-panel/` - *check your actual admin URL in `cleanify_v2/urls.py`*).
+    *   Go to the admin panel in your browser (e.g., `http://127.0.0.1:8000/secure-admin-panel/` - *check your actual admin URL in `cleanify/urls.py`*).
     *   Login with your superuser credentials.
     *   Navigate to "Authentication and Authorization" -> "Groups".
     *   Add two groups with the exact names:

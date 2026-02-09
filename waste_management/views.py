@@ -1,18 +1,16 @@
-# waste_management/views.py
 
-# --- Django & Python Imports ---
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.models import User, Group
-from django.contrib.auth.forms import AuthenticationForm, UserCreationForm # Keep these standard imports
+from django.contrib.auth.forms import AuthenticationForm, UserCreationForm 
 from django.contrib import messages
 from django.utils import timezone
 from django.db.models import Q
 import logging
 
-# --- App Imports ---
-from .models import WasteRequest, UserProfile # Import correct models
+
+from .models import WasteRequest, UserProfile 
 from .forms import (
     CustomUserCreationForm,
     RequestCreationForm,
@@ -21,12 +19,7 @@ from .forms import (
     AdminManualAssignForm
 )
 
-# Get logger instance
 logger = logging.getLogger(__name__)
-
-# =======================================
-# === DECORATORS (Defined here for simplicity) ===
-# =======================================
 
 def requestee_required(function=None, login_url='login'):
     """ Decorator for views that require Requestee role via UserProfile. """
@@ -55,10 +48,6 @@ def admin_required(function=None, login_url='login'):
     if function: return actual_decorator(function)
     return actual_decorator
 
-# =======================================
-# === HELPER FUNCTION: AUTO-ASSIGNMENT ===
-# =======================================
-# (find_and_assign_worker and try_assign_pending_task_to_worker remain the same as previous response)
 def find_and_assign_worker(request_instance):
     """
     Tries to find a *free* worker of the *matching category* and assign the request.
@@ -120,10 +109,6 @@ def try_assign_pending_task_to_worker(worker):
     else:
         logger.debug(f"No pending tasks found for Cat: {category} for Worker: {worker.username}")
 
-# =======================================
-# === AUTHENTICATION & STATIC VIEWS ===
-# =======================================
-# (landing_page, about_page, contact_page remain the same)
 def landing_page(request):
     return render(request, 'landing.html')
 def about_page(request):
@@ -131,7 +116,6 @@ def about_page(request):
 def contact_page(request):
     return render(request, 'contact.html')
 
-# (signup_view, login_view, logout_view, dashboard_redirect_view remain the same as previous response)
 def signup_view(request):
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
@@ -216,11 +200,6 @@ def dashboard_redirect_view(request):
         logout(request)
         return redirect('login')
 
-
-# ============================
-# === REQUESTEE VIEWS ======
-# ============================
-
 @requestee_required
 def requestee_dashboard(request):
     """Displays the requestee's submitted requests."""
@@ -276,17 +255,16 @@ def approve_request_view(request, request_id):
         requestee=request.user,
         status='Pending Approval'
     )
-    # <<< Get the worker who was assigned *before* potential clearing >>>
+
     original_worker = waste_request.assigned_worker
 
     if request.method == 'POST':
         form = ApprovalRatingForm(request.POST, instance=waste_request)
         if form.is_valid():
             logger.info(f"Processing approval/rating for Request ID: {request_id} by Requestee: {request.user.username}")
-            approval_instance = form.save(commit=False) # Rating is now on the instance
+            approval_instance = form.save(commit=False) 
             is_approved = form.cleaned_data.get('approve', False)
 
-            # --- Perform state changes based on approval ---
             if is_approved:
                 approval_instance.is_approved_by_student = True
                 approval_instance.status = 'Completed'
@@ -295,93 +273,70 @@ def approve_request_view(request, request_id):
                 messages.success(request, "Work approved and marked as Completed. Feedback submitted.")
             else:
                 approval_instance.is_approved_by_student = False
-                approval_instance.status = 'Pending' # Revert to Pending for re-assignment
-                # Clear worker details ONLY AFTER saving rating and before checking for new worker
+                approval_instance.status = 'Pending'
                 approval_instance.assigned_worker = None
                 approval_instance.assigned_at = None
                 approval_instance.approved_at = None
                 logger.info(f"Request ID: {request_id} REJECTED by Requestee: {request.user.username}. Status set to Pending.")
                 if approval_instance.completion_image:
                     try:
-                        approval_instance.completion_image.delete(save=False) # Delete file if rejected
+                        approval_instance.completion_image.delete(save=False)
                         logger.info(f"Deleted completion image for rejected Request ID: {request_id}")
                     except Exception as img_del_err:
                         logger.error(f"Error deleting completion_image for Request ID: {request_id}: {img_del_err}")
-                approval_instance.completion_image = None # Clear field
+                approval_instance.completion_image = None 
                 messages.warning(request, "Work not approved. Returned to Pending queue. Your rating has been recorded.")
 
-            # --- Save the Request (Updates rating, status, approval flag, worker cleared if rejected) ---
-            # The rating from the form is already on approval_instance because of form.save(commit=False)
-            # and form = ApprovalRatingForm(request.POST, instance=waste_request)
             approval_instance.save()
             logger.debug(f"Saved Request ID: {request_id} with Status: {approval_instance.status}, Rating: {approval_instance.worker_rating}")
 
-            # --- Update the ORIGINAL Worker's Average Rating ---
-            # This should happen regardless of approval/rejection, as long as form was valid (rating was given)
             if original_worker:
                 logger.debug(f"Attempting to update average rating for original worker: {original_worker.username}")
                 try:
-                    # Use the UserProfile model associated with the worker User
                     worker_profile = original_worker.profile
-                    worker_profile.update_average_rating() # Call the method on the profile
+                    worker_profile.update_average_rating()
                 except UserProfile.DoesNotExist:
                     logger.error(f"UserProfile not found for worker {original_worker.username} during rating update!")
-                    # Optionally create profile here if needed: WorkerProfile.objects.get_or_create(user=original_worker)
                 except Exception as e:
                     logger.error(f"Could not update rating profile for worker {original_worker.username}. Error: {e}", exc_info=True)
             else:
                  logger.warning(f"Original worker not found for Request ID: {request_id} when updating rating.")
 
-            # --- If Rejected, try immediate re-assignment for the PENDING task ---
             if not is_approved:
                 logger.debug(f"Attempting immediate re-assignment for rejected Request ID: {request_id}")
-                # Pass the instance which now has status='Pending' and no worker
                 find_and_assign_worker(approval_instance)
 
             return redirect('requestee_dashboard')
         else:
-            # Form invalid (rating was required but not provided)
             logger.warning(f"Approval/Rating form invalid for Request ID: {request_id}. Errors: {form.errors.as_json()}")
             messages.error(request, "Submission failed. Please select a rating.")
-            # Fall through to re-render form with errors
     else:
-        # GET request
         form = ApprovalRatingForm(instance=waste_request)
 
     context = { 'form': form, 'waste_request': waste_request }
     return render(request, 'requestee/approve_request.html', context)
 
-# =======================
-# === WORKER VIEWS ======
-# =======================
-
 @worker_required
 def worker_dashboard(request):
     """Displays the worker's currently assigned task and average rating. Uses UserProfile."""
     worker = request.user
-    # Check and update busy status first
     try:
         if hasattr(worker, 'profile'):
             worker.profile.update_busy_status()
         else:
-            # Handle missing profile case - maybe create it?
              logger.error(f"UserProfile missing for worker {worker.username} on dashboard!")
-             UserProfile.objects.get_or_create(user=worker, defaults={'role': 'Worker'}) # Attempt creation
+             UserProfile.objects.get_or_create(user=worker, defaults={'role': 'Worker'}) 
     except Exception as e:
          logger.error(f"Error updating busy status for worker {worker.username} on dashboard: {e}")
 
-
-    # Find the single task currently assigned (status='Assigned')
     current_task = WasteRequest.objects.filter(
         assigned_worker=worker,
         status='Assigned'
     ).select_related('requestee').first()
 
-    # Get worker's average rating
     avg_rating = None
     rating_str = "Not Rated Yet"
     try:
-        # Re-fetch profile after potential update_busy_status save
         worker_profile = UserProfile.objects.get(user=worker)
         avg_rating = worker_profile.average_rating
         if avg_rating is not None:
@@ -393,18 +348,16 @@ def worker_dashboard(request):
         logger.error(f"Error fetching profile/rating for worker {worker.username} on dashboard: {e}", exc_info=True)
         rating_str = "Rating Error"
 
-    # Get recently *approved* completed tasks for display history
-    # <<< Corrected the filtering here >>>
     completed_tasks = WasteRequest.objects.filter(
         assigned_worker=worker,
-        status='Completed' # Filter by the final 'Completed' status
-    ).select_related('requestee').order_by('-approved_at')[:10] # Order by approval time
+        status='Completed'
+    ).select_related('requestee').order_by('-approved_at')[:10] 
 
 
     context = {
         'current_task': current_task,
         'average_rating_str': rating_str,
-        'completed_tasks': completed_tasks, # Pass completed tasks to template
+        'completed_tasks': completed_tasks, 
     }
     return render(request, 'worker/dashboard.html', context)
 
@@ -431,13 +384,11 @@ def complete_task_view(request, request_id):
                 logger.info(f"Worker '{request.user.username}' submitted Request ID: {request_id} for approval.")
                 messages.success(request, "Task submitted for approval. Image uploaded.")
 
-                # --- Mark worker as NOT busy ---
                 try:
                     worker_profile = request.user.profile
                     worker_profile.is_busy = False
                     worker_profile.save(update_fields=['is_busy'])
                     logger.debug(f"Marked worker {request.user.username} as free.")
-                    # --- Trigger check for pending tasks ---
                     try_assign_pending_task_to_worker(request.user)
                 except UserProfile.DoesNotExist:
                      logger.error(f"UserProfile missing for worker {request.user.username} when trying to mark as free!")
@@ -459,11 +410,6 @@ def complete_task_view(request, request_id):
     context = { 'form': form, 'waste_request': waste_request }
     return render(request, 'worker/complete_task.html', context)
 
-
-# ======================
-# === ADMIN VIEWS ======
-# ======================
-# (admin_dashboard and admin_manual_assign_view remain the same as previous response)
 @admin_required
 def admin_dashboard(request):
     total_pending = WasteRequest.objects.filter(status='Pending').count()
@@ -527,10 +473,6 @@ def admin_manual_assign_view(request, request_id):
     context = { 'form': form, 'waste_request': waste_request, 'workers_available': workers_available }
     return render(request, 'admin/assign_worker_override.html', context)
 
-# ========================
-# === ERROR VIEWS ========
-# ========================
-# (custom_404 and custom_500 remain the same)
 def custom_404(request, exception):
     logger.warning(f"404 Not Found: {request.path} Exception: {exception}")
     return render(request, 'error.html', {'error_code': 404, 'error_message': 'Page Not Found'}, status=404)
